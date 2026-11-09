@@ -1,0 +1,37 @@
+# Rendered output — never commit frames or video
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.png
+*.jpg
+*.jpeg
+
+# Audio — licensed third-party files, listed in SOURCES_60s.md only
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+
+# Render working dirs
+frames/
+smoke-frames/
+renders/
+.tmp-render/
+work-audio/
+work-video-silent.mp4
+qc/
+*.log
+
+# Secrets / local config
+.env
+*.env
+*.pem
+*.key
+credentials*.json
+cookies.txt
+
+# Node
+node_modules/
+package-lock.json

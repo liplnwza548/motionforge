@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><link rel="icon" href="data:,"><style>html,body{margin:0;padding:0;background:#000}canvas{display:block;width:720px;height:1280px}</style></head>
+<body><canvas id="c" width="720" height="1280"></canvas>
+<!-- S06 60 วิ เต็มจอ 720×1280 — ห้ามใส่ตัวหนังสือดีบัก (ดู index-debug.html) -->
+<!-- โหลดผ่าน loader60.js: โมดูลขั้นที่ 1 ประกาศ `let P60` ซ้ำกันทุกไฟล์
+     โหลดด้วย <script src> ตรงๆ จะ SyntaxError — loader แยก scope ให้ (ดู loader60.js) -->
+<script src="physics60.js"></script>
+<script>
+// Bridge: โมดูลขั้นที่ 1 หา physics ผ่าน require (node) หรือ window.PHYSICS60
+// (เบราว์เซอร์) — physics60.js ใช้ const ระดับ top-level จึงต้อง map มาที่นี่
+window.PHYSICS60 = { W60, H60, FPS60, G60, Y_SURFACE60, Y_SAND60, L60, N60, SEG60,
+  TOTAL_T60, TOTAL_F60, BREACH60, ASCENT60, SONAR60, SHOTS60, SPOUT_DELAY,
+  clamp01, smooth01, easeInOutCubic, lerp, deg2rad,
+  breachCenterAtTau, breachCenterAtTime, breachVelocityAtTau, breachSpeedAtTau,
+  breachPitchDegAtTau, breachHeadAtTau, breachTailAtTau,
+  headTouchTau, headTouchTime, headTouchHeadPos, apexCenter,
+  ascentSpeed, whaleCenterAt, whalePitchDegAt, whaleHeadAt, whaleNostrilAt,
+  isNostrilAboveWater, nostrilCrossTime, spoutStartTime, headExitTime,
+  shotAt, shotByNumber, sonarHitTime, sonarRadiusAt, allSonarHits,
+  WAYPOINTS60, PITCH_WAYPOINTS60 };
+</script>
+<script src="loader60.js"></script>
+<script>
+window.__done = false;
+loadModules60().then(() => {
+  try { drawFrame(0); }
+  catch (e) { window.__drawErr = e.message; window.__done = true; }
+}).catch((e) => {
+  window.__drawErr = 'load: ' + e.message; window.__done = true; console.error(e);
+});
+</script>
+</body></html>
