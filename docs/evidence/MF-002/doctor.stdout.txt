@@ -1,0 +1,15 @@
+
+> motionforge@0.1.0 doctor
+> node scripts/doctor.cjs
+
+[PASS] OS: linux x64
+[PASS] Node v24.22.1; use Node 18 or newer.
+[PASS] npm: 11.9.0
+[PASS] FFmpeg: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+[PASS] ffprobe: ffprobe version 7.1.5-0+deb13u1 Copyright (c) 2007-2026 the FFmpeg developers
+[PASS] Python: Python 3.12.14
+[PASS] puppeteer-core installed locally.
+[PASS] Browser: chromium (Chromium 156.0.8078.79 built on Debian GNU/Linux 13 (trixie))
+[PASS] Required repository files present.
+[WARN] Legacy renderer hardcodes VM paths and obsolete URLs; installed tools do not make it portable. See docs/MF-001-baseline.md.
+[WARN] Audio assets and mix filenames require separate work; full video output is not validated.

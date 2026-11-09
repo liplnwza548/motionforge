@@ -1,0 +1,50 @@
+UTC: 2026-11-09T18:39:21.020743+00:00
+Environment: Debian 13 Linux x86_64; Windows not available.
+Node: v24.22.1
+npm: 11.9.0
+Python: Python 3.12.14
+Chromium: Chromium 156.0.8078.79 built on Debian GNU/Linux 13 (trixie)
+FFmpeg: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+Working directory: <repo>; npm cache uses <cache>; machine paths redacted.
+
+install:
+  command: npm ci
+  exit: 0
+  stdout: install.stdout.txt
+  stderr: install.stderr.txt
+
+doctor:
+  command: npm run doctor
+  exit: 0
+  stdout: doctor.stdout.txt
+  stderr: doctor.stderr.txt
+
+tests:
+  command: npm test
+  exit: 0
+  stdout: tests.stdout.txt
+  stderr: tests.stderr.txt
+
+physics:
+  command: node s06-60s/test_physics_60s.js
+  exit: 0
+  stdout: physics.stdout.txt
+  stderr: physics.stderr.txt
+
+shots:
+  command: node s06-60s/test_shots60.js
+  exit: 0
+  stdout: shots.stdout.txt
+  stderr: shots.stderr.txt
+
+invalid-path:
+  command: MOTIONFORGE_BROWSER=/nonexistent/motionforge-browser npm run doctor
+  exit: 1
+  stdout: invalid-path.stdout.txt
+  stderr: invalid-path.stderr.txt
+
+wrong-identity:
+  command: MOTIONFORGE_BROWSER=/usr/bin/python3 npm run doctor
+  exit: 1
+  stdout: wrong-identity.stdout.txt
+  stderr: wrong-identity.stderr.txt

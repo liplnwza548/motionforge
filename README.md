@@ -1,9 +1,9 @@
 # MotionForge
 
-A deterministic, frame-by-frame motion-graphics engine for vertical video (9:16).
-Animation is **drawn with code** — HTML5 Canvas + headless Chromium + FFmpeg —
-not AI-generated video. Every frame is a pure function of time, so any render is
-byte-for-byte reproducible from the same code.
+A frame-by-frame motion-graphics engine for vertical video (9:16).
+Animation is **drawn with code** using HTML5 Canvas, headless Chromium and FFmpeg.
+Deterministic and byte-identical rendering are goals that remain **unverified**;
+see the [baseline audit](docs/MF-001-baseline.md).
 
 > **Status: in active development.** The flagship demo is **S06 — a 60-second
 > split-screen marine-kinematics short** (`s06-60s/`), currently at **Master v3**
@@ -24,10 +24,13 @@ The Prompt Vault — the six reusable formulas (spine, Gerstner, particles,
 telemetry, polish) with their known weaknesses and fixes — is documented in
 `docs/FLASH-VS-OPUS-BENCHMARK.md` §3.
 
-## How to run (S06 60s)
+## Installation readiness
 
-Prerequisites: Node.js, headless Chromium (via `puppeteer-core`), FFmpeg,
-Python 3 (for the HTTP server).
+Run `npm ci` then `npm run doctor` to check dependencies; see [MF-002 readiness](docs/MF-002-readiness.md) for Windows and Linux instructions and known legacy renderer limitations. A successful doctor checks dependencies; it does **not** establish that MP4 production works.
+
+## Legacy S06 60s commands (currently blocked)
+
+The commands below document the original workflow. They are currently blocked on a fresh checkout by machine-specific dependencies, Chromium and temporary paths, and an obsolete HTTP URL. Installing dependencies or passing doctor does not fix those paths. Audio assembly has additional missing assets and filename mismatches. See [MF-001](docs/MF-001-baseline.md).
 
 ```bash
 # 1. Smoke test — render a single frame (frame 0)
@@ -45,20 +48,12 @@ Tests first (no browser needed for physics):
 ```bash
 node s06-60s/test_physics_60s.js   # expect 11/11
 node s06-60s/test_shots60.js       # expect 28/28
-node s06-12s/test_breach.js        # expect 92/92
+node s06-12s/test_breach.js        # currently fails before assertions: missing parent-relative file
 ```
 
-**Two gotchas, learned the hard way:**
-
-- **`/tmp` is a small tmpfs (512 MB on this VM) and fills up fast.** Point temp
-  at a big disk before rendering, e.g.
-  `mkdir -p .tmp-render && TMPDIR=$PWD/.tmp-render node s06-60s/render60.js`
-  (the renderer also uses a `userDataDir` on disk and `--single-process
-  --no-zygote` because Chrome fails to load scripts otherwise).
-- **Paths in the scripts are machine-specific.** `render60.js` requires
-  `puppeteer-core` from an absolute path and serves the page over HTTP on
-  port 8931 instead of `file://`. Adapt those two lines to your own machine
-  before running.
+The legacy renderer hardcodes its own temporary directory, so setting `TMPDIR`
+alone does not resolve its machine-specific paths. Its historical timings and
+output quality have not been independently reproduced in this checkout.
 
 ## Audio (not included)
 
@@ -70,8 +65,9 @@ Audio files are **not** in this repo — they are third-party, license by licens
   (SoundBible.com)`** if you publish
 - Whale spout (A10): **Public Domain** (fws.gov field recording)
 
-Download the files listed in `SOURCES_60s.md` into `s06-60s/audio/`, then run
-`./s06-60s/build_audio_60s.sh` to build the mix. Target loudness is
+The intended workflow uses files listed in `SOURCES_60s.md` under `s06-60s/audio/`
+and `./s06-60s/build_audio_60s.sh`; the audio input/output contract and missing
+assets still block reproducing the complete build. Target loudness is
 **−16 LUFS, true peak ≤ −1.0 dB**.
 
 ## Locked rules (do not change silently)
