@@ -1,0 +1,30 @@
+PASS  ping3 staging hit ~17.20s — head=(328.0, 1182.7) dist=37.1px hit=17.206s (creak 17.20)
+PASS  shot10 coil path length 599.2px — R=50.8px path=599.1px target=599.1px | max speed err=0.00px/s at t=29.00
+PASS  shot10 head stays underwater — min head y=794.8 at t=31.48s (limit >790)
+PASS  shots 13-14 breach from physics60 — center36=(300.0,760.0) apex y=495.2 touch t=39.3149s pitch=-55.0° head=(684.4,760.0) (หัวชี้ขึ้น 55° = หลัง/ข้างลงก่อน ตามสเปกที่ล็อก — ไม่ใช่หัวปัก)
+PASS  spout start 35.728 (not apex) — spout=35.728s nostril clears 35.578s
+PASS  shot19 ends x~540 in frame — center=(540.0, 980.0) head x=690.0 (frame 0..720)
+PASS  shell 0->56 @23.00, holds, 0 @55.50 — angle 17.19=0.0° 19.5=27.0° 23=56.0° 50=56.0° 53.5=10.8° 55.5=0.0°
+PASS  pose continuity (center jump/frame < 40px) — max jump=15.3px at t=35.77s
+PASS  pose head+outline in frame every frame — x∈[188.6, 706.7] y_min=354.4
+PASS  pose outline below sand (max y < 1192) — max outline.y=1184.9 at t=17.00s (limit 1192)
+PASS  pitch continuity (jump/frame < 10 deg) — max pitch jump=2.50°/frame at t=16.77s
+PASS  breach ripples: 3 rings, expand 80px/s, gone before 37.00 — 36.00: 1 ring r=20.0 | 36.50: 3 rings r=60.0/53.6/47.2 rate=80.0px/s | 36.96: 0 rings, 37.00: 0 rings (must be 0)
+PASS  white disc breach ring removed (no whiteWater 36-39s) — whiteWater entries: 36.0=0 36.5=0 38.0=0 39.0=0 (all 0; splashdown foam kept: 39.5=1 entry)
+PASS  shell anchors 27deg @19.5s, 56deg @23.0s — angle 17.19=0.0° 18.35=13.5° (expect 13.5) 19.50=27.0° (expect 27±1) 21.25=48.8° (expect 48.75) 23.00=56.0° (expect 56)
+PASS  shot04 close-up 2.2x: head+eye in frame every frame — zoom 2.2 all frames | max head-cam dev=0.7px world (limit 5) | min head/eye margin x=281px y=610px (worst t=10.00s; head sits at screen centre 360,640)
+PASS  shot18 close-up 2.5x: whole shell in frame every frame — zoom 2.5 all frames | min shell outline margin=155.0px (worst t=56.47s; >=0 = inside) | pearl max dist from screen centre=75px
+PASS  splashdown lateral curtain spans body line — alive=560 (400 burst + 160 curtain) | x span=189.8px [507.2, 697.0] (body tail ~512 → head ~684 at touch)
+PASS  breach ripple particles: alive @36.5, dead @37.0, drawn as ellipses — kind-5 alive: @36.50=3 (expect 3) @37.00=0 (expect 0) | drawn ellipses @36.50=3 rx=61.8/55.4/49.0 (expect 3, rx ~47–60) | headExit=35.556s, last ring dies 36.96s
+PASS  shell ridges clipped to fan outline + stroke 1.4px (-30%) — clip@7 (before first stroke@13) | lineWidth=1.4 (expect exactly [1.4]) | ridge strokes=8 (expect 8) | clip path = fan outline: true
+PASS  ridge tips poke outside fan outline (clip is load-bearing) — ridge endpoints outside fan: 8/8 (mid-fan tip f=0.5 at (−52, 25.4) vs boundary y≈17.7 — clip must cut it)
+PASS  pearl halo 1.0 @53.50 fading slowly to 0 @55.50 — halo 53.49=0 53.50=1 54.50=0.5 55.00=0.25 55.50=0 56.00=0 (linear fade 53.50→55.50)
+PASS  shot18 whale lifted 160px world (400px screen @2.5x) — body-tube screen top @55.00s: v2=197.7px -> v3=-202.3px (lift 400.0px, expect 400)
+PASS  shot18 whale body tube fully above frame top (bottom < 0) — body-tube screen bottom @55.00s v3=-15.5px (expect < 0)
+PASS  draw60 wires WHALE_SHOT18_LIFT=160 into headDraw (shot 18 only) — constant 160 + headDraw + shot-18-only guard present in draw60.js
+PASS  splashdown curtain lateral speed ±150-220px/s (vx 105-198) — curtain n=160 |vx0| ∈ [112.5, 195.1] (expect 160 particles, |vx| 100–200 from vPerp 150–220; v2 was 81–295)
+PASS  splashdown burst keeps v2 velocities (fans unchanged @F1185) — burst n=400 |vx0| ∈ [56.3, 546.5] (broad v2 distribution kept: steep + wide particles both present)
+PASS  splash first frame opacity 0.6 (not opaque white) — drawn kind-2 capsules @age 0: n=560 alpha all 0.600 (expect 0.600)
+PASS  splash fade-in done by 0.12s (back to v2 alpha formula) — drawn kind-2 @age 0.133s: n=560 max |alpha − 0.8·life/maxLife| = 0.0005 (expect < 0.005 — F1185 @0.185s identical to v2)
+
+28 passed, 0 failed

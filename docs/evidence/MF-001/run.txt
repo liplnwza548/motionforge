@@ -1,0 +1,34 @@
+Execution UTC: 2026-11-09T11:26:26.309791+00:00
+Environment: existing managed cloud Linux checkout; same retained workspace and installed tools as prior audit (continuity inferred from retained files and versions).
+OS: Debian GNU/Linux 13; architecture: x86_64
+Kernel: 6.18.57
+Node: v24.22.1
+Python: Python 3.12.14
+Chromium: Chromium 156.0.8078.79 built on Debian GNU/Linux 13 (trixie)
+FFmpeg: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+Working directory: <repo>
+Redactions: checkout and previous machine user-directory prefixes replaced with <repo> and <original-vm>. stdout/stderr otherwise preserved. Prior audit raw logs were not retained; these are new runs.
+
+physics:
+  command: node s06-60s/test_physics_60s.js
+  exit code: 0
+  stdout: physics.stdout.txt
+  stderr: physics.stderr.txt
+
+shots:
+  command: node s06-60s/test_shots60.js
+  exit code: 0
+  stdout: shots.stdout.txt
+  stderr: shots.stderr.txt
+
+breach:
+  command: node s06-12s/test_breach.js
+  exit code: 1
+  stdout: breach.stdout.txt
+  stderr: breach.stderr.txt
+
+renderer:
+  command: node s06-60s/render60.js --start 0 --end 0
+  exit code: 1
+  stdout: renderer.stdout.txt
+  stderr: renderer.stderr.txt
