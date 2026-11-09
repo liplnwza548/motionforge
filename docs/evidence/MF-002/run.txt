@@ -1,0 +1,44 @@
+Date UTC: 2026-11-09T14:10:31.606780+00:00
+Environment: Debian GNU/Linux 13 x86_64 managed cloud; working directory <repo>; Windows unavailable.
+Node: v24.22.1
+npm: 11.9.0
+FFmpeg: ffmpeg version 7.1.5-0+deb13u1 Copyright (c) 2000-2026 the FFmpeg developers
+Chromium: Chromium 156.0.8078.79 built on Debian GNU/Linux 13 (trixie)
+Python: Python 3.12.14
+npm cache placed outside checkout; paths to workspace and home redacted.
+
+install:
+  command: npm ci
+  exit: 0
+  stdout: install.stdout.txt
+  stderr: install.stderr.txt
+
+doctor:
+  command: npm run doctor
+  exit: 0
+  stdout: doctor.stdout.txt
+  stderr: doctor.stderr.txt
+
+doctor-invalid-browser:
+  command: MOTIONFORGE_BROWSER=/nonexistent/motionforge-browser npm run doctor
+  exit: 1
+  stdout: doctor-invalid-browser.stdout.txt
+  stderr: doctor-invalid-browser.stderr.txt
+
+doctor-tests:
+  command: npm test
+  exit: 0
+  stdout: doctor-tests.stdout.txt
+  stderr: doctor-tests.stderr.txt
+
+physics:
+  command: node s06-60s/test_physics_60s.js
+  exit: 0
+  stdout: physics.stdout.txt
+  stderr: physics.stderr.txt
+
+shots:
+  command: node s06-60s/test_shots60.js
+  exit: 0
+  stdout: shots.stdout.txt
+  stderr: shots.stderr.txt

@@ -1,0 +1,16 @@
+
+> motionforge@0.1.0 test
+> node --test tests/*.test.cjs
+
+✔ reports ready when required tools and files are available (1.365951ms)
+✔ reports missing ffmpeg and browser as blocking with guidance (0.41202ms)
+✔ reports missing package, python and repository files (0.708204ms)
+✔ invalid explicit browser path is blocking even if another browser exists (0.3904ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 95.580118

@@ -24,6 +24,10 @@ The Prompt Vault — the six reusable formulas (spine, Gerstner, particles,
 telemetry, polish) with their known weaknesses and fixes — is documented in
 `docs/FLASH-VS-OPUS-BENCHMARK.md` §3.
 
+## Installation readiness
+
+Run `npm ci` then `npm run doctor` to check dependencies; see [MF-002 readiness](docs/MF-002-readiness.md) for Windows and Linux instructions and known legacy renderer limitations.
+
 ## How to run (S06 60s)
 
 Prerequisites: Node.js, headless Chromium (via `puppeteer-core`), FFmpeg,
