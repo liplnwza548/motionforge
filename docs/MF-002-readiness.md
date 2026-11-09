@@ -2,7 +2,7 @@
 
 ## Scope and changes
 
-Adds a read-only Node doctor, pinned `puppeteer-core` dependency and npm lockfile, and automated checks. It does not change S06 physics, renderer or audio. The doctor checks executable availability/version, Node >=18, npm, Python 3, local package resolution, browser, repository files, OS and architecture. It returns 1 for FAIL and 0 for PASS/WARN. Browser detection tries PATH and common Windows Chrome/Edge locations; set `MOTIONFORGE_BROWSER` to an executable to override discovery. A specified invalid path fails even if another browser is installed. `--version` checks availability, not browser/Puppeteer protocol compatibility.
+Adds a read-only Node doctor, pinned `puppeteer-core` dependency and npm lockfile, and automated checks. It does not change S06 physics, renderer or audio. The doctor checks executable availability/version, Node >=18, npm, Python 3, local package resolution, browser, repository files, OS and architecture. It returns 1 for FAIL and 0 for PASS/WARN. Browser detection tries PATH and common Windows Chrome/Edge locations; set `MOTIONFORGE_BROWSER` to an executable to override discovery. A specified invalid path fails even if another browser is installed. `--version` output must identify Chromium, Google Chrome, or Microsoft Edge with a version number; this identity check does not prove Puppeteer protocol compatibility.
 
 A successful doctor means the checked prerequisites exist; it does not certify end-to-end rendering. Legacy renderers hardcode VM-specific paths and obsolete URLs and do not use the local package or browser override. MF-001 also identifies broken 12s paths, missing licensed audio, incompatible audio mix filenames and unverified determinism; these remain outstanding.
 
@@ -57,3 +57,7 @@ If npm is unavailable, reinstall Node with npm and reopen the terminal. If FFmpe
 - [ ] End-to-end output verified (out of scope).
 
 Recommend MF-003 define and test a portable renderer configuration and frame reproducibility, subject to the approved roadmap. Do not assume the local package changes the legacy renderer's hardcoded imports.
+
+## Review fixes
+
+Browser identity validation rejects successful non-browser version output. Tests simulate Windows browser paths and npm command handling; real Windows remains unverified. The [final review evidence](evidence/MF-002-review/run.txt) records fresh runs and negative checks.

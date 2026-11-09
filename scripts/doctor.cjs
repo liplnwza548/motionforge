@@ -24,7 +24,7 @@ function diagnose(ctx) {
   const packageOk = ctx.packageInstalled();
   add(packageOk ? 'PASS' : 'FAIL', packageOk ? 'puppeteer-core installed locally.' : 'puppeteer-core missing; run npm ci in the repository.');
   const browserCandidates = ctx.browserOverride ? [ctx.browserOverride] : ctx.browsers;
-  const browser = browserCandidates.map(name => ({ name, version: probe(name) })).find(x => x.version);
+  const browser = browserCandidates.map(name => ({ name, version: probe(name) })).find(x => x.version && /^(?:Chromium|Google Chrome|Microsoft Edge)\s+\d+(?:\.\d+)+(?:\s|$)/i.test(x.version.trim()));
   add(browser ? 'PASS' : 'FAIL', browser ? `Browser: ${browser.name} (${browser.version})` : 'Browser missing or invalid; install Chromium/Chrome, add it to PATH, or set MOTIONFORGE_BROWSER to its executable path.');
   const missing = ['s06-60s/index.html', 's06-60s/render60.js', 's06-60s/draw60.js', 's06-60s/physics60.js', 's06-60s/loader60.js', 's06-60s/build_60s.sh', 's06-60s/build_audio_60s.sh', 's06-12s/test_breach.js'].filter(f => !ctx.exists(f));
   add(missing.length ? 'FAIL' : 'PASS', missing.length ? `Repository files missing: ${missing.join(', ')}; restore the checkout.` : 'Required repository files present.');
@@ -32,18 +32,22 @@ function diagnose(ctx) {
   add('WARN', 'Audio assets and mix filenames require separate work; full video output is not validated.');
   return checks;
 }
+function browserCandidates(platform, env) {
+  return platform === 'win32' ? ['chrome', 'msedge', ...[env.PROGRAMFILES, env['PROGRAMFILES(X86)'], env.LOCALAPPDATA].filter(Boolean).flatMap(dir => [path.win32.join(dir, 'Google', 'Chrome', 'Application', 'chrome.exe'), path.win32.join(dir, 'Microsoft', 'Edge', 'Application', 'msedge.exe')])] : ['chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'microsoft-edge', 'microsoft-edge-stable'];
+}
+function commandSpec(platform, cmd, args) {
+  return platform === 'win32' && cmd === 'npm' ? { command: 'cmd.exe', args: ['/d', '/s', '/c', 'npm.cmd --version'] } : { command: cmd, args };
+}
 function main() {
-  const windows = process.platform === 'win32';
-  const candidates = windows ? ['chrome', 'msedge', ...[process.env.PROGRAMFILES, process.env['PROGRAMFILES(X86)'], process.env.LOCALAPPDATA].filter(Boolean).flatMap(dir => [path.join(dir, 'Google', 'Chrome', 'Application', 'chrome.exe'), path.join(dir, 'Microsoft', 'Edge', 'Application', 'msedge.exe')])] : ['chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable'];
+  const candidates = browserCandidates(process.platform, process.env);
   const run = (cmd, args) => {
-    const actual = windows && cmd === 'npm' ? 'npm.cmd' : cmd;
-    // npm.cmd is a fixed command; other paths are never passed through a shell.
-    const r = windows && cmd === 'npm' ? spawnSync('cmd.exe', ['/d', '/s', '/c', 'npm.cmd --version'], { encoding: 'utf8', timeout: 5000, windowsHide: true }) : spawnSync(actual, args, { encoding: 'utf8', timeout: 5000, windowsHide: true });
+    const spec = commandSpec(process.platform, cmd, args);
+    const r = spawnSync(spec.command, spec.args, { encoding: 'utf8', timeout: 5000, windowsHide: true });
     return !r.error && r.status === 0 ? (r.stdout || r.stderr).trim().split(/\r?\n/)[0] || 'available' : null;
   };
   const checks = diagnose({ platform: process.platform, arch: process.arch, nodeVersion: process.version, run, browsers: candidates, browserOverride: process.env.MOTIONFORGE_BROWSER || '', exists: f => fs.existsSync(path.join(root, f)), packageInstalled: () => { try { require.resolve(path.join(root, 'node_modules', 'puppeteer-core')); return true; } catch { return false; } } });
   for (const c of checks) console.log(`[${c.status}] ${c.message}`);
   return checks.some(c => c.status === 'FAIL') ? 1 : 0;
 }
-module.exports = { diagnose, main };
+module.exports = { diagnose, main, browserCandidates, commandSpec };
 if (require.main === module) process.exitCode = main();

@@ -1,0 +1,13 @@
+PASS  apex time+y — t_apex=37.50s τ=1.500s center=(435.0, 495.17) target y=495.2
+PASS  head touch water — t_touch=39.3149s (target 39.31) head=(684.4, 760.0) target x≈684.4
+PASS  outline below sand (max y < 1192) — max outline.y=1157.5 at t=46.47s (limit 1192)
+PASS  whale inside frame every frame — x∈[161.3, 706.7] y_min=354.6 (frame 720×1280)
+PASS  spine length constant 300±0.5 — max |len−300|=0.000 px at t=16.00s
+PASS  19 shots gapless 60.00s — n=19 sum=60.00s F0–F1800 | S13 38–39.31 (F1140–F1179), S14 39.31–43.5 (F1179–F1305)
+PASS  sonar hit after ping — ping8s→hit 10.11s (dist 380.4px) | ping11.5s→hit 13.24s (dist 312.4px) | ping17s→hit 18.51s (dist 271.5px)
+PASS  ascent speed 100→364.4 (no 550/620) — v(29)=100.0 v(32.25)=232.2 v(35.5)=364.4 a=40.68 px/s² |V|_breach=364.4
+PASS  spout at nostril exit (not apex) — head exits 35.556s, nostril clears 35.578s, spout starts 35.728s (apex 37.50s)
+PASS  WhaleState warm-up no pop — max node jump/frame during 12-frame warm-up = 23.6 px (limit 40)
+PASS  dorsal hump height 13px (u 0.66-0.78) — DORSAL_HUMP_H=13 (v2 was 10) u=[0.66, 0.78]
+
+11 passed, 0 failed
