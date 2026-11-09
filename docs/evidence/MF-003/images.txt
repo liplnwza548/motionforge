@@ -1,0 +1,3 @@
+renders/mf003-v2-a/frame-0000.png: bytes=106535 dimensions=720x1280 sha256=c905d8e43128581db9f9b36cd16faaab2054eb4ae211128620503f8a7ad669d4 RGB extrema=[(10, 255), (17, 255), (17, 255)]
+renders/mf003-v2-b/frame-0000.png: bytes=106535 dimensions=720x1280 sha256=c905d8e43128581db9f9b36cd16faaab2054eb4ae211128620503f8a7ad669d4 RGB extrema=[(10, 255), (17, 255), (17, 255)]
+renders/mf003-v2-event/frame-1179.png: bytes=216109 dimensions=720x1280 sha256=82c4a8995b4d497d8f9a206e28def39ab1170831250e080cbf11fb76a8b80f5c RGB extrema=[(9, 255), (31, 255), (19, 254)]

@@ -1,0 +1,6 @@
+
+> motionforge@0.1.0 render
+> node s06-60s/render60.js --scene s06-60s --start 1179 --end 1179 --out-dir renders/mf003-v2-event
+
+Rendered frame-1179.png
+Rendered 1 frame(s) to <repo>/renders/mf003-v2-event; no page or resource errors.

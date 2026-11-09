@@ -28,32 +28,24 @@ telemetry, polish) with their known weaknesses and fixes — is documented in
 
 Run `npm ci` then `npm run doctor` to check dependencies; see [MF-002 readiness](docs/MF-002-readiness.md) for Windows and Linux instructions and known legacy renderer limitations. A successful doctor checks dependencies; it does **not** establish that MP4 production works.
 
-## Legacy S06 60s commands (currently blocked)
+## Render S06 60s PNG frames
 
-The commands below document the original workflow. They are currently blocked on a fresh checkout by machine-specific dependencies, Chromium and temporary paths, and an obsolete HTTP URL. Installing dependencies or passing doctor does not fix those paths. Audio assembly has additional missing assets and filename mismatches. See [MF-001](docs/MF-001-baseline.md).
-
-```bash
-# 1. Smoke test — render a single frame (frame 0)
-node s06-60s/render60.js --start 0 --end 0
-
-# 2. Full render — 1,800 frames into s06-60s/frames/ (takes ~4–15 min)
-node s06-60s/render60.js
-
-# 3. Assemble the silent video, then mux with the audio mix
-./s06-60s/build_60s.sh
-```
-
-Tests first (no browser needed for physics):
+After `npm ci`, run the smoke test or choose an inclusive frame range:
 
 ```bash
-node s06-60s/test_physics_60s.js   # expect 11/11
-node s06-60s/test_shots60.js       # expect 28/28
-node s06-12s/test_breach.js        # currently fails before assertions: missing parent-relative file
+npm run render:smoke
+npm run render -- --scene s06-60s --start 1179 --end 1179 --out-dir renders/event
 ```
 
-The legacy renderer hardcodes its own temporary directory, so setting `TMPDIR`
-alone does not resolve its machine-specific paths. Its historical timings and
-output quality have not been independently reproduced in this checkout.
+Set `MOTIONFORGE_BROWSER` to the browser executable if auto-detection fails. Output files are never overwritten; choose a fresh directory on subsequent runs. The renderer serves the scene on a temporary localhost port. Frame output is 720×1280 at 30fps. See [MF-003](docs/MF-003-standard-render.md) for Windows instructions, sandbox flags and limitations. PNG rendering does not establish MP4 or audio readiness.
+
+Regression tests:
+
+```bash
+node s06-60s/test_physics_60s.js   # baseline 11/11
+node s06-60s/test_shots60.js       # baseline 28/28
+node s06-12s/test_breach.js        # fails before assertions: missing parent-relative file
+```
 
 ## Audio (not included)
 

@@ -28,7 +28,7 @@ function diagnose(ctx) {
   add(browser ? 'PASS' : 'FAIL', browser ? `Browser: ${browser.name} (${browser.version})` : 'Browser missing or invalid; install Chromium/Chrome, add it to PATH, or set MOTIONFORGE_BROWSER to its executable path.');
   const missing = ['s06-60s/index.html', 's06-60s/render60.js', 's06-60s/draw60.js', 's06-60s/physics60.js', 's06-60s/loader60.js', 's06-60s/build_60s.sh', 's06-60s/build_audio_60s.sh', 's06-12s/test_breach.js'].filter(f => !ctx.exists(f));
   add(missing.length ? 'FAIL' : 'PASS', missing.length ? `Repository files missing: ${missing.join(', ')}; restore the checkout.` : 'Required repository files present.');
-  add('WARN', 'Legacy renderer hardcodes VM paths and obsolete URLs; installed tools do not make it portable. See docs/MF-001-baseline.md.');
+  add('WARN', 'Legacy 12-second renderer retains VM paths and obsolete URLs; 60-second PNG render is available via npm run render. See docs/MF-003-standard-render.md.');
   add('WARN', 'Audio assets and mix filenames require separate work; full video output is not validated.');
   return checks;
 }

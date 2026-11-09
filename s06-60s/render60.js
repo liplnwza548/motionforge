@@ -1,145 +1,104 @@
-// render60.js — เรนเดอร์ S06 60 วิ: puppeteer-core + Chromium ของ Playwright
-// เรียก drawFrame(t) ทีละเฟรม แคปเป็น PNG (60 วิ @30fps = 1,800 เฟรม)
-// ดัดแปลงจาก s06-full-v3/render.js (วิธีที่เวิร์กแล้ว):
-// - /tmp เต็ม 100% -> userDataDir + TMPDIR ไว้บนดิสก์ใหญ่
-// - แรมน้อย -> --single-process --no-zygote
-// - waitForFunction ทำให้ frame detached ใน single-process -> manual polling
-// - โหลดผ่าน HTTP port 8931 (เสิร์ฟจากโฟลเดอร์ motionforge-benchmark) แทน file://
-// ต่างจาก v3: เปิด HTTP server เองถ้ายังไม่รัน + --start/--end (เฟรม)
-// + ข้ามเฟรมที่มี PNG อยู่แล้ว (resume) + เก็บ error รายเฟรมแล้วรายงานตอนจบ
-//
-//   node render60.js --start 0 --end 0        # smoke test 1 เฟรม
-//   node render60.js --start 1179 --end 1179  # เฟรมจุดหัวแตะน้ำ (t=39.31)
-//   node render60.js                          # เต็ม 1,800 เฟรม (F0–F1799)
-//   (F1800 = t=60.00 ปลายคลิป — เรนเดอร์เฉพาะตอน smoke test ได้ด้วย --end 1800)
-const puppeteer = require('/home/hatch/workspace/mascot-test/node_modules/puppeteer-core');
-const fs = require('fs');
-const path = require('path');
-const http = require('http');
-const { spawn } = require('child_process');
-const DIR = __dirname;
-const BENCH_DIR = path.join(DIR, '..');
-const PORT = 8931;
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+#!/usr/bin/env node
+'use strict';
+// S06 frame renderer. The scene and drawFrame(t) remain unchanged.
+const fs = require('node:fs');
+const fsp = require('node:fs/promises');
+const path = require('node:path');
+const http = require('node:http');
+const { spawnSync } = require('node:child_process');
+const { browserCandidates } = require('../scripts/doctor.cjs');
+const SCENE = __dirname;
+const ROOT = path.resolve(SCENE, '..');
 
-function parseArgs() {
-  const a = { start: 0, end: 1799 };
-  const argv = process.argv.slice(2);
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--start' && argv[i + 1] !== undefined) a.start = parseInt(argv[++i], 10);
-    else if (argv[i] === '--end' && argv[i + 1] !== undefined) a.end = parseInt(argv[++i], 10);
+function parseArgs(args) {
+  const o = {scene:'s06-60s', start:0, end:1799, outDir:path.join(ROOT,'renders','s06-60s'), noSandbox:false};
+  for (let i=0; i<args.length; i++) {
+    const key=args[i];
+    if (key === '--no-sandbox') { o.noSandbox=true; continue; }
+    if (!['--scene','--start','--end','--out-dir'].includes(key) || i+1 >= args.length || args[i+1].startsWith('--')) throw Error(`Unknown or incomplete option: ${key}`);
+    const value=args[++i];
+    if (key === '--scene') o.scene=value;
+    if (key === '--out-dir') { if (!value.trim()) throw Error('Output directory cannot be empty'); o.outDir=path.resolve(value); }
+    if (key === '--start' || key === '--end') { if (!/^\d+$/.test(value)) throw Error(`Invalid frame: ${value}`); o[key.slice(2)]=Number(value); }
   }
-  if (!Number.isFinite(a.start) || !Number.isFinite(a.end) || a.start < 0 || a.end < a.start || a.end > 1800) {
-    throw new Error(`bad range --start ${a.start} --end ${a.end} (expect 0..1800, start<=end)`);
-  }
-  return a;
+  if (o.scene !== 's06-60s') throw Error(`Unknown scene: ${o.scene}; supported: s06-60s`);
+  if (!Number.isSafeInteger(o.start) || !Number.isSafeInteger(o.end) || o.start<0 || o.end>1800 || o.start>o.end) throw Error('Invalid frame range: expected 0 <= start <= end <= 1800');
+  return o;
 }
-
-function serverUp() {
-  return new Promise((resolve) => {
-    const req = http.get(`http://127.0.0.1:${PORT}/s06-60s-v3/index.html`, (res) => {
-      res.resume();
-      resolve(res.statusCode === 200);
-    });
-    req.on('error', () => resolve(false));
-    req.setTimeout(3000, () => { req.destroy(); resolve(false); });
+function resolveBrowser({platform=process.platform, env=process.env, run}={}) {
+  const probe=run || (name => { const r=spawnSync(name,['--version'],{encoding:'utf8',timeout:5000,windowsHide:true}); return !r.error && r.status===0 ? (r.stdout||r.stderr).trim().split(/\r?\n/)[0] : null; });
+  const list=env.MOTIONFORGE_BROWSER ? [env.MOTIONFORGE_BROWSER] : browserCandidates(platform,env);
+  for (const name of list) {
+    const version=probe(name);
+    if (version && /^(?:Chromium|Google Chrome|Microsoft Edge)\s+\d+(?:\.\d+)+(?:\s|$)/i.test(version.trim())) {
+      if (run || path.isAbsolute(name) || (platform==='win32' && path.win32.isAbsolute(name))) return name;
+      const ext=platform==='win32' ? (path.extname(name) ? [''] : (env.PATHEXT||'.EXE;.CMD;.BAT').split(';')) : [''];
+      for (const dir of (env.PATH||'').split(path.delimiter)) for (const suffix of ext) {
+        const full=path.resolve(dir||'.',name+suffix);
+        try { fs.accessSync(full, fs.constants.X_OK); return full; } catch {}
+      }
+    }
+  }
+  throw Error('Browser missing or invalid. Install Chromium/Chrome/Edge or set MOTIONFORGE_BROWSER to its executable path.');
+}
+async function startServer(dir=SCENE) {
+  const server=http.createServer(async (req,res)=>{
+    try {
+      const url=new URL(req.url,'http://127.0.0.1');
+      const name=decodeURIComponent(url.pathname.slice(1));
+      if (req.method!=='GET' || !/^[\w.-]+\.(html|js)$/.test(name)) {res.writeHead(404).end();return;}
+      const file=path.join(dir,name); const data=await fsp.readFile(file);
+      res.writeHead(200,{'Content-Type':name.endsWith('.html')?'text/html; charset=utf-8':'application/javascript; charset=utf-8','Cache-Control':'no-store'}); res.end(data);
+    } catch {res.writeHead(404).end();}
   });
+  await new Promise((resolve,reject)=>{ server.once('error',reject); server.listen(0,'127.0.0.1',resolve); });
+  return server;
 }
-
-async function ensureServer() {
-  if (await serverUp()) { console.log(`HTTP server already up on :${PORT}`); return null; }
-  console.log(`starting python http.server :${PORT} in ${BENCH_DIR} ...`);
-  const proc = spawn('python3', ['-m', 'http.server', String(PORT)], {
-    cwd: BENCH_DIR, stdio: 'ignore', detached: false,
-  });
-  for (let i = 0; i < 50; i++) {
-    await sleep(300);
-    if (await serverUp()) { console.log('HTTP server up'); return proc; }
-    if (proc.exitCode !== null) throw new Error(`http.server exited early (code ${proc.exitCode})`);
+const frameName = i => `frame-${String(i).padStart(4,'0')}.png`;
+async function render(o, deps={}) {
+  const target=path.resolve(o.outDir);
+  // The old master frames folder is never used as the new output location.
+  const legacy=path.resolve(SCENE,'frames');
+  if (target===legacy || target.startsWith(legacy+path.sep)) throw Error('Output cannot be inside the legacy S06 master frames directory.');
+  await fsp.mkdir(target,{recursive:true});
+  for (let i=o.start;i<=o.end;i++) {
+    try { await fsp.lstat(path.join(target,frameName(i))); throw Error(`Output exists: ${frameName(i)}; choose a new output directory.`); }
+    catch(e) { if (e.code!=='ENOENT') throw e; }
   }
-  throw new Error('http.server did not come up in 15s');
-}
-
-(async () => {
-  const { start, end } = parseArgs();
-  fs.mkdirSync(path.join(DIR, 'frames'), { recursive: true });
-  fs.mkdirSync('/home/hatch/workspace/.tmp-chrome', { recursive: true });
-  const serverProc = await ensureServer();
-  const errors = []; // {frame, t, kind, msg}
-  let rendered = 0, skipped = 0, consecutiveDrawErr = 0;
-  const drawMs = [];
-  let browser = null;
+  const browserPath=deps.browserPath || resolveBrowser();
+  let server, browser, interrupted=false;
+  const cleanup=async()=>{ if (browser) {const b=browser; browser=null; await b.close().catch(()=>{});} if (server) {const s=server; server=null; await new Promise(r=>s.close(r));} };
+  const onSignal=()=>{ interrupted=true; process.exitCode=130; if (browser) void browser.close().catch(()=>{}); };
+  process.once('SIGINT',onSignal); process.once('SIGTERM',onSignal);
   try {
-    browser = await puppeteer.launch({
-      executablePath: '/home/hatch/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome',
-      headless: 'new',
-      userDataDir: path.join(DIR, '.chrome-profile'),
-      env: { ...process.env, TMPDIR: '/home/hatch/workspace/.tmp-chrome' },
-      args: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--single-process', '--no-zygote', '--force-device-scale-factor=1'],
-    });
-    const page = await browser.newPage();
-    await page.setViewport({ width: 720, height: 1280, deviceScaleFactor: 1 });
-    page.on('pageerror', (e) => {
-      console.error('PAGE ERROR:', e.message);
-      errors.push({ frame: 'page', t: null, kind: 'pageerror', msg: e.message });
-    });
-    page.on('console', (m) => {
-      if (m.type() === 'error') {
-        console.error('CONSOLE ERROR:', m.text());
-        errors.push({ frame: 'page', t: null, kind: 'console', msg: m.text() });
-      }
-    });
-    page.on('requestfailed', (r) => {
-      console.error('REQ FAILED:', r.url(), r.failure() && r.failure().errorText);
-      errors.push({ frame: 'page', t: null, kind: 'requestfailed', msg: `${r.url()} ${r.failure() && r.failure().errorText}` });
-    });
-    await page.goto(`http://127.0.0.1:${PORT}/s06-60s-v3/index.html`, { waitUntil: 'load', timeout: 30000 });
-    async function waitDone(timeoutMs) {
-      const t0 = Date.now();
-      while (Date.now() - t0 < timeoutMs) {
-        try { if (await page.evaluate(() => window.__done)) return true; } catch (e) { return false; }
-        await sleep(300);
-      }
-      return false;
+    server=await (deps.startServer||startServer)(SCENE);
+    const launch=deps.launch||require('puppeteer-core').launch;
+    try { browser=await launch({executablePath:browserPath,headless:true,handleSIGINT:false,handleSIGTERM:false,handleSIGHUP:false,args:o.noSandbox?['--no-sandbox']:[]}); }
+    catch(e){throw Error(`Browser launch failed: ${e.message}. Check MOTIONFORGE_BROWSER and OS sandbox support; use --no-sandbox only in an isolated trusted environment.`);}
+    if (interrupted) throw Error('Interrupted');
+    const page=await browser.newPage();
+    await page.setViewport({width:720,height:1280,deviceScaleFactor:1});
+    const errors=[];
+    page.on('pageerror', e=>errors.push(`Page error: ${e.message}`));
+    page.on('console', m=>{if(m.type()==='error') errors.push(`Console error: ${m.text()}`);});
+    page.on('requestfailed', r=>errors.push(`Request failed: ${r.url()} ${r.failure()?.errorText||''}`));
+    page.on('response', r=>{if(r.status()>=400) errors.push(`HTTP ${r.status()}: ${r.url()}`);});
+    const response=await page.goto(`http://127.0.0.1:${server.address().port}/index.html`,{waitUntil:'load',timeout:30000});
+    if (!response || !response.ok()) throw Error('Scene page failed to load');
+    await page.waitForFunction('window.__done === true',{timeout:30000});
+    const check=async()=>{const err=await page.evaluate(()=>window.__drawErr||null); if(err) errors.push(`Draw error: ${err}`); if(errors.length) throw Error(errors.join('\n'));};
+    await check();
+    for (let i=o.start;i<=o.end;i++) {
+      await page.evaluate(t=>{window.__done=false;window.__drawErr=null;try{drawFrame(t);}catch(e){window.__drawErr=e.message;window.__done=true;}},i/30);
+      await page.waitForFunction('window.__done === true',{timeout:60000});
+      await check();
+      const png=await page.screenshot({type:'png'});
+      await check();
+      await fsp.writeFile(path.join(target,frameName(i)),png,{flag:'wx'});
+      console.log(`Rendered ${frameName(i)}`);
     }
-    if (!await waitDone(30000)) throw new Error('initial drawFrame timeout');
-    const loadErr = await page.evaluate(() => window.__drawErr || null);
-    if (loadErr) throw new Error('initial load/draw error: ' + loadErr);
-    const t0 = Date.now();
-    for (let i = start; i <= end; i++) {
-      const t = i / 30;
-      const file = path.join(DIR, 'frames', 'frame-' + String(i).padStart(4, '0') + '.png');
-      if (fs.existsSync(file)) { skipped++; continue; } // resume: ข้ามเฟรมที่มีแล้ว
-      await page.evaluate((tt) => { window.__done = false; window.__drawErr = null; try { drawFrame(tt); } catch (e) { window.__drawErr = e.message; window.__done = true; } }, t);
-      if (!await waitDone(60000)) throw new Error('drawFrame timeout at frame ' + i);
-      const info = await page.evaluate(() => ({ ms: window.__drawMs, err: window.__drawErr || null }));
-      if (info.err) {
-        console.error(`DRAW ERROR frame ${i} t=${t.toFixed(2)}s: ${info.err}`);
-        errors.push({ frame: i, t, kind: 'draw', msg: info.err });
-        if (++consecutiveDrawErr >= 5) throw new Error(`5 consecutive draw errors, aborting at frame ${i}: ${info.err}`);
-      } else {
-        consecutiveDrawErr = 0;
-        drawMs.push(info.ms);
-      }
-      rendered++;
-      await page.screenshot({ path: file });
-      if (rendered % 30 === 0) console.log(`frame ${i} (t=${t.toFixed(2)}s) draw=${(info.ms || 0).toFixed(0)}ms (${((Date.now() - t0) / 1000).toFixed(1)}s elapsed, rendered=${rendered} skipped=${skipped})`);
-    }
-    if (drawMs.length) {
-      const sorted = [...drawMs].sort((a, b) => a - b);
-      const avg = drawMs.reduce((s, v) => s + v, 0) / drawMs.length;
-      console.log(`DONE frames ${start}–${end}: rendered=${rendered} skipped=${skipped} in ${((Date.now() - t0) / 1000).toFixed(1)}s | draw ms/frame (excl. screenshot): avg ${avg.toFixed(0)} median ${sorted[Math.floor(sorted.length / 2)].toFixed(0)} min ${sorted[0].toFixed(0)} max ${sorted[sorted.length - 1].toFixed(0)}`);
-    } else {
-      console.log(`DONE frames ${start}–${end}: rendered=${rendered} skipped=${skipped} (no draw timings — all skipped or errored)`);
-    }
-  } finally {
-    if (browser) await browser.close().catch(() => {});
-    if (serverProc) serverProc.kill();
-  }
-  if (errors.length) {
-    console.error(`\nERRORS: ${errors.length}`);
-    for (const e of errors) console.error(`  frame ${e.frame} t=${e.t} [${e.kind}] ${e.msg}`);
-    process.exit(1);
-  }
-  console.log('NO ERRORS');
-})().catch((e) => { console.error(e); process.exit(1); });
+    console.log(`Rendered ${o.end-o.start+1} frame(s) to ${target}; no page or resource errors.`);
+  } finally { process.removeListener('SIGINT',onSignal);process.removeListener('SIGTERM',onSignal); await cleanup(); }
+}
+module.exports={parseArgs,resolveBrowser,startServer,render};
+if(require.main===module) { let o; try {o=parseArgs(process.argv.slice(2));} catch(e){console.error(e.message);process.exitCode=1;} if(o) render(o).catch(e=>{console.error(e.message);if(process.exitCode!==130) process.exitCode=1;}); }

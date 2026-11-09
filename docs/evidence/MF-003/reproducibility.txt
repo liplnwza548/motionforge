@@ -1,0 +1,6 @@
+Two independent browser sessions, same Linux environment and Chromium 156; frame 1179:
+renders/mf003-v2-event/frame-1179.png SHA256 82c4a8995b4d497d8f9a206e28def39ab1170831250e080cbf11fb76a8b80f5c
+renders/mf003-v2-event2/frame-1179.png SHA256 76c08eff2e7b7ad98708156ddca7c9f854968d2bfe2e3c9dd87d86dc6461c5cf size=215420 bytes 720x1280 RGB extrema=[(9, 255), (31, 255), (19, 254)]
+Commands: npm run render -- --start 1179 --end 1179 --out-dir renders/mf003-v2-event[2]
+Hashes differ. Random bubble emission in particles60.js is a plausible cause, not isolated by this test.
+Range test: npm run render -- --start 0 --end 1 --out-dir renders/mf003-range; exit 0, created frame-0000.png and frame-0001.png.

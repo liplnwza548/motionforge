@@ -1,0 +1,29 @@
+
+> motionforge@0.1.0 test
+> node --test tests/*.test.cjs
+
+✔ reports ready when required tools and files are available (2.358603ms)
+✔ reports missing ffmpeg and browser as blocking with guidance (0.322516ms)
+✔ reports missing package, python and repository files (0.541739ms)
+✔ invalid explicit browser path is blocking even if another browser exists (0.187161ms)
+✔ recognizes Chromium, Chrome and Edge version strings (1.443865ms)
+✔ rejects unrelated successful version response and malformed browser identity (0.304977ms)
+✔ Windows discovery includes Chrome and Edge in common installation paths (0.308459ms)
+✔ Windows npm probe uses cmd without putting browser paths in shell commands (0.880889ms)
+✔ rejects invalid scene and ranges (5.072243ms)
+✔ accepts inclusive range and output directory containing spaces (0.358703ms)
+✔ browser resolution rejects unavailable or invalid override (1.369172ms)
+✔ local server returns 404 for missing page and asset and closes (30.696589ms)
+✔ existing output fails before browser launch and stays intact (3.245695ms)
+✔ browser launch failure closes server and reports cause (3.378946ms)
+✔ page failure closes browser and server without creating output (1.774613ms)
+✔ a missing asset causes render failure and closes browser and server (3.06677ms)
+✔ Windows explicit browser paths with spaces are passed as a single executable (0.672016ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.54237

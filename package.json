@@ -3,7 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "description": "MotionForge readiness foundation",
-  "engines": { "node": ">=18" },
-  "scripts": { "doctor": "node scripts/doctor.cjs", "test": "node --test tests/*.test.cjs" },
-  "dependencies": { "puppeteer-core": "24.31.0" }
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "doctor": "node scripts/doctor.cjs",
+    "test": "node --test tests/*.test.cjs",
+    "render": "node s06-60s/render60.js",
+    "render:smoke": "node s06-60s/render60.js --scene s06-60s --start 0 --end 0 --out-dir renders/smoke"
+  },
+  "dependencies": {
+    "puppeteer-core": "24.31.0"
+  }
 }

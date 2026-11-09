@@ -4,7 +4,7 @@
 
 Adds a read-only Node doctor, pinned `puppeteer-core` dependency and npm lockfile, and automated checks. It does not change S06 physics, renderer or audio. The doctor checks executable availability/version, Node >=18, npm, Python 3, local package resolution, browser, repository files, OS and architecture. It returns 1 for FAIL and 0 for PASS/WARN. Browser detection tries PATH and common Windows Chrome/Edge locations; set `MOTIONFORGE_BROWSER` to an executable to override discovery. A specified invalid path fails even if another browser is installed. `--version` output must identify Chromium, Google Chrome, or Microsoft Edge with a version number; this identity check does not prove Puppeteer protocol compatibility.
 
-A successful doctor means the checked prerequisites exist; it does not certify end-to-end rendering. Legacy renderers hardcode VM-specific paths and obsolete URLs and do not use the local package or browser override. MF-001 also identifies broken 12s paths, missing licensed audio, incompatible audio mix filenames and unverified determinism; these remain outstanding.
+A successful doctor means the checked prerequisites exist; it does not certify end-to-end rendering. MF-003 replaces the S06 60-second renderer paths and adds a portable PNG command; see [MF-003](MF-003-standard-render.md). The 12-second renderer still hardcodes VM paths and obsolete URLs. MF-001 also identifies broken 12s paths, missing licensed audio, incompatible audio mix filenames and unverified determinism; these remain outstanding.
 
 ## Install and run
 
